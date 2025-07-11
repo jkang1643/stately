@@ -9,7 +9,8 @@
 import SwiftUI
 import UserNotifications
 
-@main
+// Legacy chat app - replaced by StateBeaconApp
+// @main - removed to avoid duplicate main entry points
 struct BitchatApp: App {
     @StateObject private var chatViewModel = ChatViewModel()
     #if os(iOS)
@@ -49,7 +50,7 @@ struct BitchatApp: App {
     }
     
     private func handleURL(_ url: URL) {
-        if url.scheme == "bitchat" && url.host == "share" {
+        if url.scheme == "stately" && url.host == "share" {
             // Handle shared content
             checkForSharedContent()
         }
@@ -57,7 +58,7 @@ struct BitchatApp: App {
     
     private func checkForSharedContent() {
         // Check app group for shared content from extension
-        guard let userDefaults = UserDefaults(suiteName: "group.chat.bitchat") else {
+        guard let userDefaults = UserDefaults(suiteName: "group.app.stately") else {
             print("DEBUG: Failed to access app group UserDefaults")
             return
         }

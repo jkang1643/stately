@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitchat - Advanced Development Interface</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: #000;
+            color: #00ff00;
+            overflow: hidden;
+        }
+
+        .development-interface {
+            display: flex;
+            height: 100vh;
+        }
+
+        .simulator-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            border-right: 1px solid #333;
+        }
+
+        .debug-pane {
+            width: 400px;
+            background: #111;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .debug-header {
+            background: #222;
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            font-weight: bold;
+            color: #00ff00;
+        }
+
+        .debug-tabs {
+            display: flex;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+        }
+
+        .debug-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .debug-tab.active {
+            color: #00ff00;
+            background: #333;
+        }
+
+        .debug-tab:hover {
+            color: #00ff00;
+            background: #2a2a2a;
+        }
+
+        .debug-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .debug-section {
+            margin-bottom: 20px;
+        }
+
+        .debug-section h4 {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+        }
+
+        .debug-item {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .debug-item pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #ccc;
+        }
+
+        .debug-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .debug-button {
+            background: transparent;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .debug-button:hover {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .debug-button.danger {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .debug-button.danger:hover {
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        .debug-input {
+            background: transparent;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            margin-bottom: 8px;
+        }
+
+        .debug-input:focus {
+            border-color: #00ff00;
+        }
+
+        .debug-select {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            margin-bottom: 8px;
+        }
+
+        .debug-select:focus {
+            border-color: #00ff00;
+        }
+
+        .log-entry {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-left: 3px solid #333;
+            margin-bottom: 4px;
+            word-wrap: break-word;
+        }
+
+        .log-entry.info {
+            border-left-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ffff00;
+            color: #ffff00;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .log-entry.debug {
+            border-left-color: #666;
+            color: #666;
+        }
+
+        .state-viewer {
+            font-size: 11px;
+            color: #ccc;
+        }
+
+        .state-key {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .state-value {
+            color: #ccc;
+        }
+
+        .state-value.string {
+            color: #ffa500;
+        }
+
+        .state-value.number {
+            color: #0080ff;
+        }
+
+        .state-value.boolean {
+            color: #ff00ff;
+        }
+
+        .performance-meter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .performance-bar {
+            flex: 1;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .performance-fill {
+            height: 100%;
+            background: #00ff00;
+            transition: width 0.3s ease;
+        }
+
+        .performance-fill.warning {
+            background: #ffff00;
+        }
+
+        .performance-fill.critical {
+            background: #ff0000;
+        }
+
+        .scenario-button {
+            background: transparent;
+            border: 1px solid #666;
+            color: #ccc;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .scenario-button:hover {
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .scenario-button.active {
+            border-color: #00ff00;
+            color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        /* Simulator styles (reusing from previous version) */
+        .bitchat-app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .header {
+            height: 44px;
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 500;
+            color: #00ff00;
+        }
+
+        .nickname-input {
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: 14px;
+            max-width: 100px;
+            outline: none;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+
+        .messages-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            background: #000;
+        }
+
+        .message {
+            margin-bottom: 4px;
+            padding: 2px 0;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message-timestamp {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .message-sender {
+            color: #00ff00;
+            font-weight: 500;
+        }
+
+        .message-content {
+            color: #00ff00;
+        }
+
+        .message-system {
+            color: #888;
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        .input-container {
+            border-top: 1px solid #333;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .input-prefix {
+            color: #00ff00;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .send-button {
+            background: none;
+            border: none;
+            color: #00ff00;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .send-button:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .send-button:disabled {
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #000;
+            border-left: 1px solid #333;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            height: 44px;
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .sidebar-content {
+            padding: 12px 0;
+            overflow-y: auto;
+            height: calc(100% - 44px);
+        }
+
+        .sidebar-section {
+            margin-bottom: 16px;
+        }
+
+        .sidebar-section-title {
+            color: #666;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 0 12px 8px;
+            text-transform: uppercase;
+        }
+
+        .peer-item {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .peer-item:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .peer-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+        }
+
+        .peer-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .channel-item {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .channel-item:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .channel-item.active {
+            background: rgba(0, 255, 0, 0.2);
+        }
+
+        .channel-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .unread-count {
+            background: #ffa500;
+            color: #000;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .mention {
+            color: #ffa500;
+            font-weight: bold;
+        }
+
+        .hashtag {
+            color: #0080ff;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9;
+        }
+
+        .private-chat-header {
+            background: rgba(255, 165, 0, 0.1);
+            border-bottom: 1px solid #ffa500;
+        }
+
+        .private-chat-header .header-center {
+            color: #ffa500;
+        }
+
+        .channel-header {
+            background: rgba(0, 128, 255, 0.1);
+            border-bottom: 1px solid #0080ff;
+        }
+
+        .channel-header .header-center {
+            color: #0080ff;
+        }
+
+        .delivery-status {
+            color: #666;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .delivery-status.delivered {
+            color: #00ff00;
+        }
+
+        .delivery-status.read {
+            color: #0080ff;
+        }
+
+        .delivery-status.failed {
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // Mock data generators
+        const generateMockPeers = (count = 4) => {
+            const nicknames = ['alice', 'bob', 'charlie', 'diana', 'eve', 'frank', 'grace', 'henry'];
+            return Array.from({ length: count }, (_, i) => ({
+                id: `peer${i + 1}`,
+                nickname: nicknames[i % nicknames.length],
+                rssi: -Math.floor(Math.random() * 60 + 30),
+                isFavorite: Math.random() > 0.7,
+                isBlocked: false,
+                publicKeyFingerprint: `fp${i + 1}${Math.random().toString(36).substr(2, 8)}`
+            }));
+        };
+
+        const generateMockChannels = () => [
+            { name: '#general', isPasswordProtected: false, unreadCount: 3, isRetentionEnabled: false, creator: 'alice' },
+            { name: '#random', isPasswordProtected: true, unreadCount: 0, isRetentionEnabled: true, creator: 'bob' },
+            { name: '#dev', isPasswordProtected: false, unreadCount: 1, isRetentionEnabled: false, creator: 'charlie' },
+            { name: '#crypto', isPasswordProtected: true, unreadCount: 0, isRetentionEnabled: false, creator: 'diana' },
+        ];
+
+        const generateMockMessages = (count = 10) => {
+            const senders = ['alice', 'bob', 'charlie', 'diana', 'system'];
+            const contents = [
+                'Hey everyone! How is everyone doing today?',
+                'Just working on some code. Anyone want to review?',
+                'Check out this cool new feature I\'m working on',
+                'Anyone up for a coffee break?',
+                'The weather is nice today',
+                'I found this interesting article about mesh networking',
+                'Who wants to join #dev channel?',
+                'Testing the new encryption features',
+                'This app is really cool!',
+                'Let\'s plan our next meetup'
+            ];
+
+            return Array.from({ length: count }, (_, i) => ({
+                id: `msg${i + 1}`,
+                sender: senders[Math.floor(Math.random() * senders.length)],
+                content: contents[Math.floor(Math.random() * contents.length)],
+                timestamp: new Date(Date.now() - (count - i) * 60000),
+                isSystem: Math.random() > 0.8,
+                mentions: Math.random() > 0.7 ? ['alice'] : [],
+                channel: Math.random() > 0.7 ? '#general' : null,
+                isPrivate: Math.random() > 0.8,
+                deliveryStatus: Math.random() > 0.5 ? 'delivered' : null,
+                isEncrypted: Math.random() > 0.8
+            }));
+        };
+
+        // Logging system
+        const useLogger = () => {
+            const [logs, setLogs] = useState([]);
+
+            const log = useCallback((level, message, data = null) => {
+                const entry = {
+                    id: Date.now(),
+                    level,
+                    message,
+                    data,
+                    timestamp: new Date()
+                };
+                setLogs(prev => [...prev.slice(-99), entry]); // Keep last 100 logs
+            }, []);
+
+            return { logs, log };
+        };
+
+        // Performance monitoring
+        const usePerformanceMonitor = () => {
+            const [metrics, setMetrics] = useState({
+                messageProcessingTime: 0,
+                memoryUsage: 0,
+                networkLatency: 0,
+                renderTime: 0
+            });
+
+            const updateMetric = useCallback((key, value) => {
+                setMetrics(prev => ({ ...prev, [key]: value }));
+            }, []);
+
+            return { metrics, updateMetric };
+        };
+
+        // Test scenarios
+        const TEST_SCENARIOS = {
+            'Normal Operation': {
+                peers: 4,
+                channels: 3,
+                messages: 10,
+                networkLatency: 50,
+                errorRate: 0
+            },
+            'High Load': {
+                peers: 15,
+                channels: 8,
+                messages: 50,
+                networkLatency: 200,
+                errorRate: 0.1
+            },
+            'Poor Network': {
+                peers: 2,
+                channels: 1,
+                messages: 5,
+                networkLatency: 1000,
+                errorRate: 0.3
+            },
+            'Offline Mode': {
+                peers: 0,
+                channels: 0,
+                messages: 0,
+                networkLatency: 0,
+                errorRate: 1.0
+            }
+        };
+
+        const BitchatSimulator = ({ scenario, onLog, onMetricUpdate }) => {
+            const [nickname, setNickname] = useState('anon1234');
+            const [messages, setMessages] = useState([]);
+            const [inputText, setInputText] = useState('');
+            const [showSidebar, setShowSidebar] = useState(false);
+            const [connectedPeers, setConnectedPeers] = useState([]);
+            const [channels, setChannels] = useState([]);
+            const [currentChannel, setCurrentChannel] = useState(null);
+            const [selectedPrivateChat, setSelectedPrivateChat] = useState(null);
+            const [showAutocomplete, setShowAutocomplete] = useState(false);
+            const [autocompleteSuggestions, setAutocompleteSuggestions] = useState([]);
+            const messagesEndRef = useRef(null);
+
+            // Initialize data based on scenario
+            useEffect(() => {
+                const config = TEST_SCENARIOS[scenario] || TEST_SCENARIOS['Normal Operation'];
+                
+                setConnectedPeers(generateMockPeers(config.peers));
+                setChannels(generateMockChannels().slice(0, config.channels));
+                setMessages(generateMockMessages(config.messages));
+                
+                onLog('info', `Scenario loaded: ${scenario}`, config);
+            }, [scenario, onLog]);
+
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages]);
+
+            const formatTimestamp = (date) => {
+                return date.toLocaleTimeString('en-US', { 
+                    hour12: false, 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit' 
+                });
+            };
+
+            const formatMessage = (message) => {
+                if (message.isSystem) {
+                    return `* ${message.content} *`;
+                }
+                
+                let content = message.content;
+                
+                // Highlight mentions
+                if (message.mentions && message.mentions.length > 0) {
+                    message.mentions.forEach(mention => {
+                        content = content.replace(new RegExp(`@${mention}`, 'g'), `<span class="mention">@${mention}</span>`);
+                    });
+                }
+                
+                // Highlight hashtags
+                content = content.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+                
+                return content;
+            };
+
+            const handleSendMessage = () => {
+                if (!inputText.trim()) return;
+
+                const startTime = performance.now();
+                
+                const newMessage = {
+                    id: Date.now().toString(),
+                    sender: nickname,
+                    content: inputText,
+                    timestamp: new Date(),
+                    isSystem: false,
+                    mentions: inputText.match(/@(\w+)/g)?.map(m => m.slice(1)) || [],
+                    channel: currentChannel,
+                    isPrivate: !!selectedPrivateChat,
+                    deliveryStatus: selectedPrivateChat ? 'sending' : null
+                };
+
+                setMessages(prev => [...prev, newMessage]);
+                setInputText('');
+                setShowAutocomplete(false);
+
+                const processingTime = performance.now() - startTime;
+                onMetricUpdate('messageProcessingTime', processingTime);
+                onLog('info', `Message sent: ${inputText}`, { processingTime });
+
+                // Simulate delivery status updates
+                if (selectedPrivateChat) {
+                    setTimeout(() => {
+                        setMessages(prev => prev.map(msg => 
+                            msg.id === newMessage.id 
+                                ? { ...msg, deliveryStatus: 'delivered' }
+                                : msg
+                        ));
+                        onLog('debug', `Message delivered: ${newMessage.id}`);
+                    }, 1000);
+
+                    setTimeout(() => {
+                        setMessages(prev => prev.map(msg => 
+                            msg.id === newMessage.id 
+                                ? { ...msg, deliveryStatus: 'read' }
+                                : msg
+                        ));
+                        onLog('debug', `Message read: ${newMessage.id}`);
+                    }, 3000);
+                }
+            };
+
+            const handleInputChange = (e) => {
+                const value = e.target.value;
+                setInputText(value);
+
+                // Handle autocomplete for mentions
+                const lastWord = value.split(' ').pop();
+                if (lastWord.startsWith('@') && lastWord.length > 1) {
+                    const query = lastWord.slice(1).toLowerCase();
+                    const suggestions = connectedPeers
+                        .filter(peer => peer.nickname.toLowerCase().includes(query))
+                        .map(peer => peer.nickname)
+                        .slice(0, 5);
+                    
+                    setAutocompleteSuggestions(suggestions);
+                    setShowAutocomplete(suggestions.length > 0);
+                } else {
+                    setShowAutocomplete(false);
+                }
+            };
+
+            const handleChannelSelect = (channel) => {
+                setCurrentChannel(channel.name);
+                setSelectedPrivateChat(null);
+                setShowSidebar(false);
+                onLog('info', `Switched to channel: ${channel.name}`);
+            };
+
+            const handlePrivateChatSelect = (peer) => {
+                setSelectedPrivateChat(peer);
+                setCurrentChannel(null);
+                setShowSidebar(false);
+                onLog('info', `Started private chat with: ${peer.nickname}`);
+            };
+
+            const handleBackToPublic = () => {
+                setCurrentChannel(null);
+                setSelectedPrivateChat(null);
+                onLog('info', 'Returned to public chat');
+            };
+
+            const getRSSIColor = (rssi) => {
+                if (rssi >= -50) return '#00ff00';
+                if (rssi >= -60) return '#80ff00';
+                if (rssi >= -70) return '#ffff00';
+                if (rssi >= -80) return '#ff8000';
+                return '#ff0000';
+            };
+
+            const getHeaderStyle = () => {
+                if (selectedPrivateChat) return 'private-chat-header';
+                if (currentChannel) return 'channel-header';
+                return '';
+            };
+
+            const getInputPrefix = () => {
+                if (selectedPrivateChat) return `<@${nickname}> →`;
+                if (currentChannel) return `<@${nickname}>`;
+                return `<@${nickname}>`;
+            };
+
+            return (
+                <div className="bitchat-app">
+                    <div className={`header ${getHeaderStyle()}`}>
+                        <div className="header-left">
+                            {(currentChannel || selectedPrivateChat) && (
+                                <button 
+                                    className="debug-button"
+                                    onClick={handleBackToPublic}
+                                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                                >
+                                    ← back
+                                </button>
+                            )}
+                        </div>
+                        
+                        <div className="header-center" onClick={() => setShowSidebar(!showSidebar)}>
+                            {selectedPrivateChat ? (
+                                <>
+                                    <span style={{ fontSize: '14px', marginRight: '6px' }}>🔒</span>
+                                    <span style={{ fontSize: '16px', fontWeight: '500' }}>
+                                        {selectedPrivateChat.nickname}
+                                    </span>
+                                </>
+                            ) : currentChannel ? (
+                                <>
+                                    <span style={{ fontSize: '16px', fontWeight: '500' }}>
+                                        channel: {currentChannel}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="logo">bitchat*</span>
+                                    <span style={{ color: '#666', fontSize: '14px' }}>@</span>
+                                    <input
+                                        type="text"
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        className="nickname-input"
+                                        placeholder="nickname"
+                                    />
+                                </>
+                            )}
+                        </div>
+                        
+                        <div className="header-right">
+                            <div className="status-indicator" style={{ background: getRSSIColor(-45) }} />
+                            <span style={{ fontSize: '12px' }}>
+                                👥 {connectedPeers.length}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="main-content">
+                        <div className="messages-container">
+                            <div className="messages">
+                                {messages.map(message => (
+                                    <div key={message.id} className={`message ${message.isSystem ? 'message-system' : ''}`}>
+                                        <span className="message-timestamp">
+                                            [{formatTimestamp(message.timestamp)}]
+                                        </span>
+                                        {' '}
+                                        {!message.isSystem && (
+                                            <span className="message-sender">
+                                                &lt;@{message.sender}&gt;
+                                            </span>
+                                        )}
+                                        {' '}
+                                        <span 
+                                            className="message-content"
+                                            dangerouslySetInnerHTML={{ __html: formatMessage(message) }}
+                                        />
+                                        {message.deliveryStatus && (
+                                            <span className={`delivery-status ${message.deliveryStatus}`}>
+                                                {message.deliveryStatus === 'sending' && '○'}
+                                                {message.deliveryStatus === 'delivered' && '✓'}
+                                                {message.deliveryStatus === 'read' && '✓✓'}
+                                                {message.deliveryStatus === 'failed' && '✗'}
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            <div className="input-container">
+                                <span className="input-prefix">{getInputPrefix()}</span>
+                                <input
+                                    type="text"
+                                    value={inputText}
+                                    onChange={handleInputChange}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                    className="message-input"
+                                    placeholder=""
+                                />
+                                <button
+                                    onClick={handleSendMessage}
+                                    disabled={!inputText.trim()}
+                                    className="send-button"
+                                >
+                                    ↑
+                                </button>
+                            </div>
+                        </div>
+
+                        {showSidebar && <div className="overlay" onClick={() => setShowSidebar(false)} />}
+                        
+                        <div className={`sidebar ${showSidebar ? 'open' : ''}`}>
+                            <div className="sidebar-header">
+                                YOUR NETWORK
+                            </div>
+                            <div className="sidebar-content">
+                                {channels.length > 0 && (
+                                    <div className="sidebar-section">
+                                        <div className="sidebar-section-title">CHANNELS</div>
+                                        {channels.map(channel => (
+                                            <div
+                                                key={channel.name}
+                                                className={`channel-item ${currentChannel === channel.name ? 'active' : ''}`}
+                                                onClick={() => handleChannelSelect(channel)}
+                                            >
+                                                {channel.isPasswordProtected && (
+                                                    <span style={{ color: '#ffa500', fontSize: '12px' }}>🔒</span>
+                                                )}
+                                                <span className="channel-name">{channel.name}</span>
+                                                {channel.unreadCount > 0 && (
+                                                    <span className="unread-count">{channel.unreadCount}</span>
+                                                )}
+                                                {channel.isRetentionEnabled && (
+                                                    <span style={{ color: '#ffff00', fontSize: '12px' }}>📌</span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                
+                                <div className="sidebar-section">
+                                    <div className="sidebar-section-title">PEOPLE</div>
+                                    {connectedPeers.map(peer => (
+                                        <div
+                                            key={peer.id}
+                                            className="peer-item"
+                                            onClick={() => handlePrivateChatSelect(peer)}
+                                        >
+                                            <div 
+                                                className="peer-status" 
+                                                style={{ background: getRSSIColor(peer.rssi) }}
+                                            />
+                                            {peer.isFavorite && (
+                                                <span style={{ color: '#ffff00', fontSize: '12px' }}>⭐</span>
+                                            )}
+                                            <span className="peer-name">{peer.nickname}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const DebugPanel = ({ logs, metrics, onScenarioChange, currentScenario }) => {
+            const [activeTab, setActiveTab] = useState('logs');
+
+            const renderStateViewer = () => {
+                const state = {
+                    scenario: currentScenario,
+                    metrics: metrics,
+                    timestamp: new Date().toISOString()
+                };
+
+                return (
+                    <div className="state-viewer">
+                        <pre>{JSON.stringify(state, null, 2)}</pre>
+                    </div>
+                );
+            };
+
+            const renderPerformanceMetrics = () => {
+                const getPerformanceLevel = (value, max) => {
+                    const percentage = (value / max) * 100;
+                    if (percentage < 50) return 'good';
+                    if (percentage < 80) return 'warning';
+                    return 'critical';
+                };
+
+                return (
+                    <div>
+                        <div className="performance-meter">
+                            <span style={{ width: '120px', fontSize: '11px' }}>Message Processing:</span>
+                            <div className="performance-bar">
+                                <div 
+                                    className={`performance-fill ${getPerformanceLevel(metrics.messageProcessingTime, 10)}`}
+                                    style={{ width: `${Math.min((metrics.messageProcessingTime / 10) * 100, 100)}%` }}
+                                />
+                            </div>
+                            <span style={{ fontSize: '11px' }}>{metrics.messageProcessingTime.toFixed(2)}ms</span>
+                        </div>
+                        
+                        <div className="performance-meter">
+                            <span style={{ width: '120px', fontSize: '11px' }}>Network Latency:</span>
+                            <div className="performance-bar">
+                                <div 
+                                    className={`performance-fill ${getPerformanceLevel(metrics.networkLatency, 1000)}`}
+                                    style={{ width: `${Math.min((metrics.networkLatency / 1000) * 100, 100)}%` }}
+                                />
+                            </div>
+                            <span style={{ fontSize: '11px' }}>{metrics.networkLatency}ms</span>
+                        </div>
+                        
+                        <div className="performance-meter">
+                            <span style={{ width: '120px', fontSize: '11px' }}>Memory Usage:</span>
+                            <div className="performance-bar">
+                                <div 
+                                    className={`performance-fill ${getPerformanceLevel(metrics.memoryUsage, 100)}`}
+                                    style={{ width: `${metrics.memoryUsage}%` }}
+                                />
+                            </div>
+                            <span style={{ fontSize: '11px' }}>{metrics.memoryUsage}%</span>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="debug-pane">
+                    <div className="debug-header">
+                        Development Tools
+                    </div>
+                    
+                    <div className="debug-tabs">
+                        <button 
+                            className={`debug-tab ${activeTab === 'logs' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('logs')}
+                        >
+                            Logs
+                        </button>
+                        <button 
+                            className={`debug-tab ${activeTab === 'state' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('state')}
+                        >
+                            State
+                        </button>
+                        <button 
+                            className={`debug-tab ${activeTab === 'performance' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('performance')}
+                        >
+                            Performance
+                        </button>
+                        <button 
+                            className={`debug-tab ${activeTab === 'scenarios' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('scenarios')}
+                        >
+                            Scenarios
+                        </button>
+                    </div>
+                    
+                    <div className="debug-content">
+                        {activeTab === 'logs' && (
+                            <div className="debug-section">
+                                <h4>Application Logs</h4>
+                                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                    {logs.slice(-50).map(log => (
+                                        <div key={log.id} className={`log-entry ${log.level}`}>
+                                            <span style={{ color: '#666', fontSize: '10px' }}>
+                                                [{log.timestamp.toLocaleTimeString()}]
+                                            </span>
+                                            {' '}
+                                            <span>{log.message}</span>
+                                            {log.data && (
+                                                <pre style={{ fontSize: '10px', marginTop: '4px' }}>
+                                                    {JSON.stringify(log.data, null, 2)}
+                                                </pre>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'state' && (
+                            <div className="debug-section">
+                                <h4>Application State</h4>
+                                {renderStateViewer()}
+                            </div>
+                        )}
+                        
+                        {activeTab === 'performance' && (
+                            <div className="debug-section">
+                                <h4>Performance Metrics</h4>
+                                {renderPerformanceMetrics()}
+                            </div>
+                        )}
+                        
+                        {activeTab === 'scenarios' && (
+                            <div className="debug-section">
+                                <h4>Test Scenarios</h4>
+                                <div>
+                                    {Object.keys(TEST_SCENARIOS).map(scenario => (
+                                        <button
+                                            key={scenario}
+                                            className={`scenario-button ${currentScenario === scenario ? 'active' : ''}`}
+                                            onClick={() => onScenarioChange(scenario)}
+                                        >
+                                            {scenario}
+                                        </button>
+                                    ))}
+                                </div>
+                                
+                                <div style={{ marginTop: '20px' }}>
+                                    <h4>Current Scenario Config</h4>
+                                    <div className="debug-item">
+                                        <pre>{JSON.stringify(TEST_SCENARIOS[currentScenario], null, 2)}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const DevelopmentInterface = () => {
+            const { logs, log } = useLogger();
+            const { metrics, updateMetric } = usePerformanceMonitor();
+            const [currentScenario, setCurrentScenario] = useState('Normal Operation');
+
+            useEffect(() => {
+                log('info', 'Development interface initialized');
+                
+                // Simulate some metrics
+                const interval = setInterval(() => {
+                    updateMetric('networkLatency', Math.floor(Math.random() * 200 + 50));
+                    updateMetric('memoryUsage', Math.floor(Math.random() * 80 + 20));
+                }, 2000);
+
+                return () => clearInterval(interval);
+            }, [log, updateMetric]);
+
+            return (
+                <div className="development-interface">
+                    <div className="simulator-pane">
+                        <BitchatSimulator 
+                            scenario={currentScenario}
+                            onLog={log}
+                            onMetricUpdate={updateMetric}
+                        />
+                    </div>
+                    <DebugPanel 
+                        logs={logs}
+                        metrics={metrics}
+                        onScenarioChange={setCurrentScenario}
+                        currentScenario={currentScenario}
+                    />
+                </div>
+            );
+        };
+
+        ReactDOM.render(<DevelopmentInterface />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -67,6 +67,11 @@ enum PowerMode {
     }
 }
 
+// Protocol for battery optimization notifications
+protocol BatteryOptimizerDelegate: AnyObject {
+    func powerModeDidChange(_ mode: PowerMode)
+}
+
 class BatteryOptimizer {
     static let shared = BatteryOptimizer()
     
@@ -75,6 +80,7 @@ class BatteryOptimizer {
     @Published var batteryLevel: Float = 1.0
     @Published var isCharging: Bool = false
     
+    weak var delegate: BatteryOptimizerDelegate?
     private var observers: [NSObjectProtocol] = []
     
     private init() {
@@ -175,6 +181,8 @@ class BatteryOptimizer {
     #endif
     
     private func updatePowerMode() {
+        let oldMode = currentPowerMode
+        
         // Determine optimal power mode based on:
         // 1. Battery level
         // 2. Charging status
@@ -204,6 +212,11 @@ class BatteryOptimizer {
                 currentPowerMode = .performance
             }
         }
+        
+        // Notify delegate if power mode changed
+        if oldMode != currentPowerMode {
+            delegate?.powerModeDidChange(currentPowerMode)
+        }
     }
     
     // Manual power mode override
@@ -225,5 +238,20 @@ class BatteryOptimizer {
     // Should we reduce message frequency?
     var shouldThrottleMessages: Bool {
         return currentPowerMode == .powerSaver || currentPowerMode == .ultraLowPower
+    }
+    
+    // Should we optimize for battery (extend broadcast intervals)?
+    func shouldOptimizeForBattery() -> Bool {
+        return batteryLevel < 0.3 || currentPowerMode == .powerSaver || currentPowerMode == .ultraLowPower
+    }
+    
+    // Get optimized broadcast interval based on current power mode
+    var optimizedBroadcastInterval: TimeInterval {
+        switch currentPowerMode {
+        case .performance: return 10.0  // More frequent when charging/high battery
+        case .balanced: return 15.0     // Default interval
+        case .powerSaver: return 30.0   // Double interval to save battery
+        case .ultraLowPower: return 60.0 // Minimal broadcasting
+        }
     }
 }

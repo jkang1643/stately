@@ -1,6 +1,6 @@
-name: bitchat
+name: stately
 options:
-  bundleIdPrefix: chat.bitchat
+  bundleIdPrefix: app.stately
   deploymentTarget:
     iOS: 16.0
     macOS: 13.0
@@ -22,11 +22,11 @@ targets:
     info:
       path: bitchat/Info.plist
       properties:
-        CFBundleDisplayName: bitchat
+        CFBundleDisplayName: Stately
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        NSBluetoothAlwaysUsageDescription: bitchat uses Bluetooth to create a secure mesh network for chatting with nearby users.
-        NSBluetoothPeripheralUsageDescription: bitchat uses Bluetooth to discover and connect with other bitchat users nearby.
+        NSBluetoothAlwaysUsageDescription: Stately uses Bluetooth to create a secure mesh network for sharing status with nearby users.
+        NSBluetoothPeripheralUsageDescription: Stately uses Bluetooth to discover and connect with other Stately users nearby.
         UIBackgroundModes:
           - bluetooth-central
           - bluetooth-peripheral
@@ -41,10 +41,10 @@ targets:
         UIRequiresFullScreen: false
         CFBundleURLTypes:
           - CFBundleURLSchemes:
-              - bitchat
+              - stately
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: chat.bitchat
-      PRODUCT_NAME: bitchat
+      PRODUCT_BUNDLE_IDENTIFIER: app.stately
+      PRODUCT_NAME: stately
       INFOPLIST_FILE: bitchat/Info.plist
       ENABLE_PREVIEWS: YES
       SWIFT_VERSION: 5.0
@@ -71,18 +71,18 @@ targets:
     info:
       path: bitchat/Info.plist
       properties:
-        CFBundleDisplayName: bitchat
+        CFBundleDisplayName: Stately
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
-        NSBluetoothAlwaysUsageDescription: bitchat uses Bluetooth to create a secure mesh network for chatting with nearby users.
-        NSBluetoothPeripheralUsageDescription: bitchat uses Bluetooth to discover and connect with other bitchat users nearby.
+        NSBluetoothAlwaysUsageDescription: Stately uses Bluetooth to create a secure mesh network for sharing status with nearby users.
+        NSBluetoothPeripheralUsageDescription: Stately uses Bluetooth to discover and connect with other Stately users nearby.
         CFBundleURLTypes:
           - CFBundleURLSchemes:
-              - bitchat
+              - stately
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: chat.bitchat
-      PRODUCT_NAME: bitchat
+      PRODUCT_BUNDLE_IDENTIFIER: app.stately
+      PRODUCT_NAME: stately
       INFOPLIST_FILE: bitchat/Info.plist
       ENABLE_PREVIEWS: YES
       SWIFT_VERSION: 5.0
@@ -103,7 +103,7 @@ targets:
     info:
       path: bitchatShareExtension/Info.plist
       properties:
-        CFBundleDisplayName: bitchat
+        CFBundleDisplayName: Stately
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
@@ -115,7 +115,7 @@ targets:
               NSExtensionActivationSupportsWebURLWithMaxCount: 1
               NSExtensionActivationSupportsImageWithMaxCount: 1
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: chat.bitchat.ShareExtension
+      PRODUCT_BUNDLE_IDENTIFIER: app.stately.ShareExtension
       INFOPLIST_FILE: bitchatShareExtension/Info.plist
       SWIFT_VERSION: 5.0
       IPHONEOS_DEPLOYMENT_TARGET: 16.0
@@ -134,7 +134,7 @@ targets:
     dependencies:
       - target: bitchat_iOS
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: chat.bitchat.tests
+      PRODUCT_BUNDLE_IDENTIFIER: app.stately.tests
       INFOPLIST_FILE: bitchatTests/Info.plist
       SWIFT_VERSION: 5.0
       IPHONEOS_DEPLOYMENT_TARGET: 16.0
@@ -153,7 +153,7 @@ targets:
     dependencies:
       - target: bitchat_macOS
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: chat.bitchat.tests
+      PRODUCT_BUNDLE_IDENTIFIER: app.stately.tests
       INFOPLIST_FILE: bitchatTests/Info.plist
       SWIFT_VERSION: 5.0
       MACOSX_DEPLOYMENT_TARGET: 13.0

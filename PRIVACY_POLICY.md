@@ -1,10 +1,10 @@
-# bitchat Privacy Policy
+# Stately Privacy Policy
 
 *Last updated: January 2025*
 
 ## Our Commitment
 
-bitchat is designed with privacy as its foundation. We believe private communication is a fundamental human right. This policy explains how bitchat protects your privacy.
+Stately is designed with privacy as its foundation. We believe private status sharing is a fundamental right. This policy explains how Stately protects your privacy while enabling proximity-based status awareness.
 
 ## Summary
 
@@ -13,58 +13,55 @@ bitchat is designed with privacy as its foundation. We believe private communica
 - **No tracking** - We have no analytics, telemetry, or user tracking
 - **Open source** - You can verify these claims by reading our code
 
-## What Information bitchat Stores
+## What Information Stately Stores
 
 ### On Your Device Only
 
 1. **Identity Key** 
    - A cryptographic key generated on first launch
    - Stored locally in your device's secure storage
-   - Allows you to maintain "favorite" relationships across app restarts
+   - Allows consistent peer identification across app restarts
    - Never leaves your device
 
-2. **Nickname**
-   - The display name you choose (or auto-generated)
+2. **Display Name**
+   - The name you choose to share with nearby peers
    - Stored only on your device
-   - Shared with peers you communicate with
+   - Broadcast with your state to nearby users
 
-3. **Message History** (if enabled)
-   - When room owners enable retention, messages are saved locally
-   - Stored encrypted on your device
-   - You can delete this at any time
-
-4. **Favorite Peers**
-   - Public keys of peers you mark as favorites
-   - Stored only on your device
-   - Allows you to recognize these peers in future sessions
+3. **Current State**
+   - Your selected status (sleeping, working, SOS, etc.)
+   - Stored only in device memory (never persisted)
+   - Reset to default when app is closed
 
 ### Temporary Session Data
 
-During each session, bitchat temporarily maintains:
+During each session, Stately temporarily maintains:
 - Active peer connections (forgotten when app closes)
-- Routing information for message delivery
-- Cached messages for offline peers (12 hours max)
+- Nearby peer states (expire after 5 minutes)
+- Routing information for state relay
+- Bluetooth mesh connection state
 
 ## What Information is Shared
 
-### With Other bitchat Users
+### With Nearby Stately Users
 
-When you use bitchat, nearby peers can see:
-- Your chosen nickname
-- Your ephemeral public key (changes each session)
-- Messages you send to public rooms or directly to them
+When you use Stately, nearby peers can see:
+- Your chosen display name
+- Your current state (sleeping, working, SOS, etc.)
+- Timestamp of your last state update
 - Your approximate Bluetooth signal strength (for connection quality)
 
-### With Room Members
+### Through Mesh Network
 
-When you join a password-protected room:
-- Your messages are visible to others with the password
-- Your nickname appears in the member list
-- Room owners can see you've joined
+When states propagate through the mesh:
+- Your state broadcasts up to 3 hops from your device
+- Your peer ID (temporary, changes each session)
+- Your encrypted state payload
+- TTL (time-to-live) for relay limiting
 
 ## What We DON'T Do
 
-bitchat **never**:
+Stately **never**:
 - Collects personal information
 - Tracks your location
 - Stores data on servers
@@ -72,49 +69,67 @@ bitchat **never**:
 - Uses analytics or telemetry
 - Creates user profiles
 - Requires registration
+- Persists state history
 
 ## Encryption
 
-All private messages use end-to-end encryption:
-- **X25519** for key exchange
-- **AES-256-GCM** for message encryption
-- **Ed25519** for digital signatures
-- **Argon2id** for password-protected rooms
+All state broadcasts use encryption:
+- **AES-256-GCM** for state payload encryption
+- **Shared broadcast key** for mesh state encryption
+- **Privacy padding** to obscure state content length
+- **Ed25519** for optional digital signatures
 
 ## Your Rights
 
 You have complete control:
-- **Delete Everything**: Triple-tap the logo to instantly wipe all data
-- **Leave Anytime**: Close the app and your presence disappears
+- **Ephemeral States**: Your state exists only while app is running
+- **Leave Anytime**: Close the app and your state disappears
 - **No Account**: Nothing to delete from servers because there are none
-- **Portability**: Your data never leaves your device unless you export it
+- **Local-Only**: Your data never leaves your device ecosystem
 
 ## Bluetooth & Permissions
 
-bitchat requires Bluetooth permission to function:
-- Used only for peer-to-peer communication
+Stately requires Bluetooth permission to function:
+- Used only for peer-to-peer state broadcasting
 - No location data is accessed or stored
 - Bluetooth is not used for tracking
 - You can revoke this permission at any time in system settings
 
 ## Children's Privacy
 
-bitchat does not knowingly collect information from children. The app has no age verification because it collects no personal information from anyone.
+Stately does not knowingly collect information from children. The app has no age verification because it collects no personal information from anyone.
 
 ## Data Retention
 
-- **Messages**: Deleted from memory when app closes (unless room retention is enabled)
+- **Current State**: Exists only in memory while app is running
+- **Peer States**: Expire automatically after 5 minutes
 - **Identity Key**: Persists until you delete the app
-- **Favorites**: Persist until you remove them or delete the app
+- **Display Name**: Persists until you change it or delete the app
 - **Everything Else**: Exists only during active sessions
+
+## Emergency Features
+
+For SOS functionality:
+- SOS state broadcasts get priority in mesh relay
+- Local notifications alert nearby peers to emergencies
+- No emergency data is stored or transmitted outside the mesh
+- SOS state cleared manually or when app closes
 
 ## Security Measures
 
-- All communication is encrypted
+- All state communication is encrypted
 - No data transmitted to servers (there are none)
 - Open source code for public audit
 - Regular security updates
-- Cryptographic signatures prevent tampering
+- Ephemeral state storage prevents data accumulation
+
+## Battery & Performance
+
+Stately optimizes for battery life:
+- Adaptive broadcast intervals based on battery level
+- Reduced activity when app is backgrounded
+- No background data collection or transmission
+- Privacy-preserving power mode adjustments
 
 ## Changes to This Policy
 
@@ -125,15 +140,15 @@ If we update this policy:
 
 ## Contact
 
-bitchat is an open source project. For privacy questions:
-- Review our code: https://github.com/yourusername/bitchat
+Stately is an open source project. For privacy questions:
+- Review our code: https://github.com/yourusername/stately
 - Open an issue on GitHub
-- Join the discussion in public rooms
+- Join the discussion in the community
 
 ## Philosophy
 
-Privacy isn't just a feature—it's the entire point. bitchat proves that modern communication doesn't require surrendering your privacy. No accounts, no servers, no surveillance. Just people talking freely.
+Privacy isn't just a feature—it's the entire point. Stately proves that proximity-based status awareness doesn't require surrendering your privacy. No accounts, no servers, no surveillance. Just ephemeral status sharing among nearby peers.
 
 ---
 
-*This policy is released into the public domain under The Unlicense, just like bitchat itself.*
+*This policy is released into the public domain under The Unlicense, just like Stately itself.*

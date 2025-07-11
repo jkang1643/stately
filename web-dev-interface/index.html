@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitchat - Development Interface</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: #000;
+            color: #00ff00;
+            overflow: hidden;
+        }
+
+        .bitchat-app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .header {
+            height: 44px;
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 500;
+            color: #00ff00;
+        }
+
+        .nickname-input {
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: 14px;
+            max-width: 100px;
+            outline: none;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+
+        .messages-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            background: #000;
+        }
+
+        .message {
+            margin-bottom: 4px;
+            padding: 2px 0;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message-timestamp {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .message-sender {
+            color: #00ff00;
+            font-weight: 500;
+        }
+
+        .message-content {
+            color: #00ff00;
+        }
+
+        .message-system {
+            color: #888;
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        .message-private {
+            color: #ffa500;
+        }
+
+        .message-channel {
+            color: #0080ff;
+        }
+
+        .input-container {
+            border-top: 1px solid #333;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .input-prefix {
+            color: #00ff00;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .send-button {
+            background: none;
+            border: none;
+            color: #00ff00;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .send-button:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .send-button:disabled {
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #000;
+            border-left: 1px solid #333;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            height: 44px;
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .sidebar-content {
+            padding: 12px 0;
+            overflow-y: auto;
+            height: calc(100% - 44px);
+        }
+
+        .sidebar-section {
+            margin-bottom: 16px;
+        }
+
+        .sidebar-section-title {
+            color: #666;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 0 12px 8px;
+            text-transform: uppercase;
+        }
+
+        .peer-item {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .peer-item:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .peer-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+        }
+
+        .peer-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .channel-item {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .channel-item:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .channel-item.active {
+            background: rgba(0, 255, 0, 0.2);
+        }
+
+        .channel-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .channel-lock {
+            color: #ffa500;
+            font-size: 12px;
+        }
+
+        .unread-count {
+            background: #ffa500;
+            color: #000;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .dev-controls {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        .dev-controls h3 {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .dev-button {
+            background: transparent;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .dev-button:hover {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .dev-input {
+            background: transparent;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .dev-input:focus {
+            border-color: #00ff00;
+        }
+
+        .autocomplete {
+            position: absolute;
+            bottom: 100%;
+            left: 12px;
+            right: 12px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .autocomplete-item {
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .mention {
+            color: #ffa500;
+            font-weight: bold;
+        }
+
+        .hashtag {
+            color: #0080ff;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70vw;
+            }
+            
+            .dev-controls {
+                position: static;
+                margin: 20px;
+                width: auto;
+            }
+        }
+
+        .private-chat-header {
+            background: rgba(255, 165, 0, 0.1);
+            border-bottom: 1px solid #ffa500;
+        }
+
+        .private-chat-header .header-center {
+            color: #ffa500;
+        }
+
+        .channel-header {
+            background: rgba(0, 128, 255, 0.1);
+            border-bottom: 1px solid #0080ff;
+        }
+
+        .channel-header .header-center {
+            color: #0080ff;
+        }
+
+        .delivery-status {
+            color: #666;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .delivery-status.delivered {
+            color: #00ff00;
+        }
+
+        .delivery-status.read {
+            color: #0080ff;
+        }
+
+        .delivery-status.failed {
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Mock data and utilities
+        const mockPeers = [
+            { id: 'peer1', nickname: 'alice', rssi: -45, isFavorite: true },
+            { id: 'peer2', nickname: 'bob', rssi: -67, isFavorite: false },
+            { id: 'peer3', nickname: 'charlie', rssi: -89, isFavorite: true },
+            { id: 'peer4', nickname: 'diana', rssi: -34, isFavorite: false },
+        ];
+
+        const mockChannels = [
+            { name: '#general', isPasswordProtected: false, unreadCount: 3, isRetentionEnabled: false },
+            { name: '#random', isPasswordProtected: true, unreadCount: 0, isRetentionEnabled: true },
+            { name: '#dev', isPasswordProtected: false, unreadCount: 1, isRetentionEnabled: false },
+        ];
+
+        const mockMessages = [
+            { id: '1', sender: 'system', content: 'Welcome to bitchat! Get people around you to download bitchat…and chat with them here!', timestamp: new Date(Date.now() - 300000), isSystem: true },
+            { id: '2', sender: 'alice', content: 'Hey everyone! How is everyone doing today?', timestamp: new Date(Date.now() - 240000), mentions: [] },
+            { id: '3', sender: 'bob', content: '@alice doing great! Just working on some code. How about you?', timestamp: new Date(Date.now() - 180000), mentions: ['alice'] },
+            { id: '4', sender: 'charlie', content: 'Anyone want to join #dev channel to discuss the new features?', timestamp: new Date(Date.now() - 120000), mentions: [] },
+            { id: '5', sender: 'alice', content: 'Sure! I\'ll check it out. #dev sounds interesting', timestamp: new Date(Date.now() - 60000), mentions: [] },
+        ];
+
+        const formatTimestamp = (date) => {
+            return date.toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+        };
+
+        const formatMessage = (message) => {
+            if (message.isSystem) {
+                return `* ${message.content} *`;
+            }
+            
+            let content = message.content;
+            
+            // Highlight mentions
+            if (message.mentions && message.mentions.length > 0) {
+                message.mentions.forEach(mention => {
+                    content = content.replace(new RegExp(`@${mention}`, 'g'), `<span class="mention">@${mention}</span>`);
+                });
+            }
+            
+            // Highlight hashtags
+            content = content.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+            
+            return content;
+        };
+
+        const BitchatApp = () => {
+            const [nickname, setNickname] = useState('anon1234');
+            const [messages, setMessages] = useState(mockMessages);
+            const [inputText, setInputText] = useState('');
+            const [showSidebar, setShowSidebar] = useState(false);
+            const [connectedPeers, setConnectedPeers] = useState(mockPeers);
+            const [channels, setChannels] = useState(mockChannels);
+            const [currentChannel, setCurrentChannel] = useState(null);
+            const [selectedPrivateChat, setSelectedPrivateChat] = useState(null);
+            const [showAutocomplete, setShowAutocomplete] = useState(false);
+            const [autocompleteSuggestions, setAutocompleteSuggestions] = useState([]);
+            const [showDevControls, setShowDevControls] = useState(true);
+            const messagesEndRef = useRef(null);
+
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages]);
+
+            const handleSendMessage = () => {
+                if (!inputText.trim()) return;
+
+                const newMessage = {
+                    id: Date.now().toString(),
+                    sender: nickname,
+                    content: inputText,
+                    timestamp: new Date(),
+                    isSystem: false,
+                    mentions: inputText.match(/@(\w+)/g)?.map(m => m.slice(1)) || [],
+                    channel: currentChannel,
+                    isPrivate: !!selectedPrivateChat,
+                    deliveryStatus: selectedPrivateChat ? 'sending' : null
+                };
+
+                setMessages(prev => [...prev, newMessage]);
+                setInputText('');
+                setShowAutocomplete(false);
+
+                // Simulate delivery status updates for private messages
+                if (selectedPrivateChat) {
+                    setTimeout(() => {
+                        setMessages(prev => prev.map(msg => 
+                            msg.id === newMessage.id 
+                                ? { ...msg, deliveryStatus: 'delivered' }
+                                : msg
+                        ));
+                    }, 1000);
+
+                    setTimeout(() => {
+                        setMessages(prev => prev.map(msg => 
+                            msg.id === newMessage.id 
+                                ? { ...msg, deliveryStatus: 'read' }
+                                : msg
+                        ));
+                    }, 3000);
+                }
+            };
+
+            const handleInputChange = (e) => {
+                const value = e.target.value;
+                setInputText(value);
+
+                // Handle autocomplete for mentions
+                const lastWord = value.split(' ').pop();
+                if (lastWord.startsWith('@') && lastWord.length > 1) {
+                    const query = lastWord.slice(1).toLowerCase();
+                    const suggestions = connectedPeers
+                        .filter(peer => peer.nickname.toLowerCase().includes(query))
+                        .map(peer => peer.nickname)
+                        .slice(0, 5);
+                    
+                    setAutocompleteSuggestions(suggestions);
+                    setShowAutocomplete(suggestions.length > 0);
+                } else {
+                    setShowAutocomplete(false);
+                }
+            };
+
+            const handleAutocompleteSelect = (suggestion) => {
+                const words = inputText.split(' ');
+                words[words.length - 1] = `@${suggestion} `;
+                setInputText(words.join(' '));
+                setShowAutocomplete(false);
+            };
+
+            const handleChannelSelect = (channel) => {
+                setCurrentChannel(channel.name);
+                setSelectedPrivateChat(null);
+                setShowSidebar(false);
+                
+                // Update unread count
+                setChannels(prev => prev.map(ch => 
+                    ch.name === channel.name 
+                        ? { ...ch, unreadCount: 0 }
+                        : ch
+                ));
+            };
+
+            const handlePrivateChatSelect = (peer) => {
+                setSelectedPrivateChat(peer);
+                setCurrentChannel(null);
+                setShowSidebar(false);
+            };
+
+            const handleBackToPublic = () => {
+                setCurrentChannel(null);
+                setSelectedPrivateChat(null);
+            };
+
+            const addMockMessage = (type) => {
+                const mockContents = {
+                    mention: `@${nickname} this is a test mention for you!`,
+                    private: 'This is a private message test',
+                    channel: 'Testing channel messages #general',
+                    system: 'alice connected',
+                    hug: `🫂 bob hugs ${nickname}`,
+                    slap: `🐟 charlie slaps ${nickname} around a bit with a large trout`
+                };
+
+                const newMessage = {
+                    id: Date.now().toString(),
+                    sender: type === 'system' ? 'system' : 'alice',
+                    content: mockContents[type] || 'Test message',
+                    timestamp: new Date(),
+                    isSystem: type === 'system',
+                    mentions: type === 'mention' ? [nickname] : [],
+                    channel: type === 'channel' ? '#general' : currentChannel,
+                    isPrivate: type === 'private',
+                    deliveryStatus: type === 'private' ? 'delivered' : null
+                };
+
+                setMessages(prev => [...prev, newMessage]);
+            };
+
+            const simulatePeerConnection = () => {
+                const newPeer = {
+                    id: `peer${Date.now()}`,
+                    nickname: `user${Math.floor(Math.random() * 1000)}`,
+                    rssi: -Math.floor(Math.random() * 60 + 30),
+                    isFavorite: false
+                };
+
+                setConnectedPeers(prev => [...prev, newPeer]);
+                
+                const connectMessage = {
+                    id: Date.now().toString(),
+                    sender: 'system',
+                    content: `${newPeer.nickname} connected`,
+                    timestamp: new Date(),
+                    isSystem: true
+                };
+
+                setMessages(prev => [...prev, connectMessage]);
+            };
+
+            const getRSSIColor = (rssi) => {
+                if (rssi >= -50) return '#00ff00';
+                if (rssi >= -60) return '#80ff00';
+                if (rssi >= -70) return '#ffff00';
+                if (rssi >= -80) return '#ff8000';
+                return '#ff0000';
+            };
+
+            const getHeaderStyle = () => {
+                if (selectedPrivateChat) return 'private-chat-header';
+                if (currentChannel) return 'channel-header';
+                return '';
+            };
+
+            const getInputPrefix = () => {
+                if (selectedPrivateChat) return `<@${nickname}> →`;
+                if (currentChannel) return `<@${nickname}>`;
+                return `<@${nickname}>`;
+            };
+
+            return (
+                <div className="bitchat-app">
+                    <div className={`header ${getHeaderStyle()}`}>
+                        <div className="header-left">
+                            {(currentChannel || selectedPrivateChat) && (
+                                <button 
+                                    className="dev-button"
+                                    onClick={handleBackToPublic}
+                                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                                >
+                                    ← back
+                                </button>
+                            )}
+                        </div>
+                        
+                        <div className="header-center" onClick={() => setShowSidebar(!showSidebar)}>
+                            {selectedPrivateChat ? (
+                                <>
+                                    <span style={{ fontSize: '14px', marginRight: '6px' }}>🔒</span>
+                                    <span style={{ fontSize: '16px', fontWeight: '500' }}>
+                                        {selectedPrivateChat.nickname}
+                                    </span>
+                                </>
+                            ) : currentChannel ? (
+                                <>
+                                    <span style={{ fontSize: '16px', fontWeight: '500' }}>
+                                        channel: {currentChannel}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="logo">bitchat*</span>
+                                    <span style={{ color: '#666', fontSize: '14px' }}>@</span>
+                                    <input
+                                        type="text"
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        className="nickname-input"
+                                        placeholder="nickname"
+                                    />
+                                </>
+                            )}
+                        </div>
+                        
+                        <div className="header-right">
+                            <div className="status-indicator" style={{ background: getRSSIColor(-45) }} />
+                            <span style={{ fontSize: '12px' }}>
+                                👥 {connectedPeers.length}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="main-content">
+                        <div className="messages-container">
+                            <div className="messages">
+                                {messages.map(message => (
+                                    <div key={message.id} className={`message ${message.isSystem ? 'message-system' : ''}`}>
+                                        <span className="message-timestamp">
+                                            [{formatTimestamp(message.timestamp)}]
+                                        </span>
+                                        {' '}
+                                        {!message.isSystem && (
+                                            <span className="message-sender">
+                                                &lt;@{message.sender}&gt;
+                                            </span>
+                                        )}
+                                        {' '}
+                                        <span 
+                                            className="message-content"
+                                            dangerouslySetInnerHTML={{ __html: formatMessage(message) }}
+                                        />
+                                        {message.deliveryStatus && (
+                                            <span className={`delivery-status ${message.deliveryStatus}`}>
+                                                {message.deliveryStatus === 'sending' && '○'}
+                                                {message.deliveryStatus === 'delivered' && '✓'}
+                                                {message.deliveryStatus === 'read' && '✓✓'}
+                                                {message.deliveryStatus === 'failed' && '✗'}
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            <div className="input-container">
+                                <span className="input-prefix">{getInputPrefix()}</span>
+                                <input
+                                    type="text"
+                                    value={inputText}
+                                    onChange={handleInputChange}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                    className="message-input"
+                                    placeholder=""
+                                />
+                                <button
+                                    onClick={handleSendMessage}
+                                    disabled={!inputText.trim()}
+                                    className="send-button"
+                                >
+                                    ↑
+                                </button>
+                                
+                                {showAutocomplete && (
+                                    <div className="autocomplete">
+                                        {autocompleteSuggestions.map(suggestion => (
+                                            <div
+                                                key={suggestion}
+                                                className="autocomplete-item"
+                                                onClick={() => handleAutocompleteSelect(suggestion)}
+                                            >
+                                                @{suggestion}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {showSidebar && <div className="overlay" onClick={() => setShowSidebar(false)} />}
+                        
+                        <div className={`sidebar ${showSidebar ? 'open' : ''}`}>
+                            <div className="sidebar-header">
+                                YOUR NETWORK
+                            </div>
+                            <div className="sidebar-content">
+                                {channels.length > 0 && (
+                                    <div className="sidebar-section">
+                                        <div className="sidebar-section-title">CHANNELS</div>
+                                        {channels.map(channel => (
+                                            <div
+                                                key={channel.name}
+                                                className={`channel-item ${currentChannel === channel.name ? 'active' : ''}`}
+                                                onClick={() => handleChannelSelect(channel)}
+                                            >
+                                                {channel.isPasswordProtected && (
+                                                    <span className="channel-lock">🔒</span>
+                                                )}
+                                                <span className="channel-name">{channel.name}</span>
+                                                {channel.unreadCount > 0 && (
+                                                    <span className="unread-count">{channel.unreadCount}</span>
+                                                )}
+                                                {channel.isRetentionEnabled && (
+                                                    <span style={{ color: '#ffff00', fontSize: '12px' }}>📌</span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                
+                                <div className="sidebar-section">
+                                    <div className="sidebar-section-title">PEOPLE</div>
+                                    {connectedPeers.map(peer => (
+                                        <div
+                                            key={peer.id}
+                                            className="peer-item"
+                                            onClick={() => handlePrivateChatSelect(peer)}
+                                        >
+                                            <div 
+                                                className="peer-status" 
+                                                style={{ background: getRSSIColor(peer.rssi) }}
+                                            />
+                                            {peer.isFavorite && (
+                                                <span style={{ color: '#ffff00', fontSize: '12px' }}>⭐</span>
+                                            )}
+                                            <span className="peer-name">{peer.nickname}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {showDevControls && (
+                        <div className="dev-controls">
+                            <h3>Development Controls</h3>
+                            <button className="dev-button" onClick={() => addMockMessage('mention')}>
+                                Add Mention
+                            </button>
+                            <button className="dev-button" onClick={() => addMockMessage('private')}>
+                                Add Private Message
+                            </button>
+                            <button className="dev-button" onClick={() => addMockMessage('channel')}>
+                                Add Channel Message
+                            </button>
+                            <button className="dev-button" onClick={() => addMockMessage('system')}>
+                                Add System Message
+                            </button>
+                            <button className="dev-button" onClick={() => addMockMessage('hug')}>
+                                Add Hug
+                            </button>
+                            <button className="dev-button" onClick={() => addMockMessage('slap')}>
+                                Add Slap
+                            </button>
+                            <button className="dev-button" onClick={simulatePeerConnection}>
+                                Simulate Peer Connection
+                            </button>
+                            <button className="dev-button" onClick={() => setShowDevControls(false)}>
+                                Hide Controls
+                            </button>
+                        </div>
+                    )}
+
+                    {!showDevControls && (
+                        <button
+                            className="dev-button"
+                            style={{ 
+                                position: 'fixed', 
+                                top: '60px', 
+                                right: '20px',
+                                zIndex: 1000
+                            }}
+                            onClick={() => setShowDevControls(true)}
+                        >
+                            Show Dev Controls
+                        </button>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<BitchatApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
