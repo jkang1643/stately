@@ -8,7 +8,7 @@ A minimal, decentralized state broadcasting tool that works over Bluetooth mesh 
 
 ## License
 
-This project is released into the public domain. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 license.
 
 ## Features
 
