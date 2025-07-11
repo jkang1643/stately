@@ -1,4 +1,4 @@
-![Stately Logo](https://github.com/jkang1643/stately/assets/41090687/465514495-b4ed-d478-502e-e1471a7cd782)
+![Stately Logo](https://i.postimg.cc/hjfBp3zp/stately.png)
 
 
 > [!WARNING]
