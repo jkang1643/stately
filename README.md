@@ -1,4 +1,4 @@
-![ChatGPT Image Jul 5, 2025 at 06_07_31 PM](https://github.com/user-attachments/assets/2660f828-49c7-444d-beca-d8b01854667a)
+![ChatGPT Image Jul 5, 2025 at 06_07_31 PM](https://github.com/jkang1643/stately/issues/1#issue-3224429942)
 # Stately
 
 > [!WARNING]
